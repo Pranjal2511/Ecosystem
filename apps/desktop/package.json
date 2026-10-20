@@ -1,0 +1,35 @@
+{
+  "name": "@nexashare/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NexaShare Windows desktop application",
+  "type": "module",
+  "main": "out/main/index.js",
+  "scripts": {
+    "start": "electron-vite dev",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src",
+    "build": "electron-vite build",
+    "package": "electron-vite build && electron-builder --win dir",
+    "make": "electron-vite build && electron-builder --win nsis"
+  },
+  "dependencies": {
+    "@nexashare/protocol": "0.1.0",
+    "@nexashare/shared": "0.1.0",
+    "@nexashare/transfer-core": "0.1.0",
+    "@nexashare/validation": "0.1.0",
+    "qrcode": "^1.5.4",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.3",
+    "electron": "38.2.1",
+    "electron-builder": "^26.0.12",
+    "electron-vite": "^4.0.1",
+    "vite": "^7.1.7"
+  }
+}

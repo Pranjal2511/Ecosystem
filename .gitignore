@@ -1,0 +1,76 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Builds
+dist/
+out/
+build/
+release/
+*.exe
+*.msi
+*.nupkg
+*.apk
+*.aab
+*.ipa
+coverage/
+.vite/
+.turbo/
+.cache/
+
+# Electron Forge
+apps/desktop/out/
+
+# Android
+apps/android/android/.gradle/
+apps/android/android/build/
+apps/android/android/app/build/
+apps/android/android/local.properties
+apps/android/android/app/.cxx/
+*.keystore
+*.jks
+!debug.keystore
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.pfx
+id_ed25519
+id_ed25519.pub
+signing/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Test artifacts
+.tmp/
+tmp/
+test-artifacts/
+
+# TypeScript
+*.tsbuildinfo
+
+# Metro
+apps/android/.metro-health-check*
+
+# Local NexaShare data
+.nexashare/

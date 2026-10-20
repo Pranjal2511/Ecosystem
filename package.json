@@ -1,0 +1,42 @@
+{
+  "name": "nexashare",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Secure, local-first file sharing between Windows and Android",
+  "workspaces": [
+    "packages/*",
+    "apps/desktop",
+    "apps/android"
+  ],
+  "scripts": {
+    "build:packages": "npm run build -w @nexashare/protocol && npm run build -w @nexashare/shared && npm run build -w @nexashare/validation && npm run build -w @nexashare/transfer-core",
+    "build": "npm run build:packages && npm run build --workspaces --if-present",
+    "typecheck": "npm run build:packages && npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present && vitest run",
+    "test:unit": "vitest run tests/unit packages",
+    "test:integration": "vitest run tests/integration",
+    "test:security": "vitest run tests/security",
+    "test:watch": "vitest",
+    "dev:desktop": "npm run build:packages && npm run start -w @nexashare/desktop",
+    "build:desktop": "npm run make -w @nexashare/desktop",
+    "dev:android": "npm run start -w @nexashare/android",
+    "android": "npm run android -w @nexashare/android"
+  },
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@types/node": "^22.18.6",
+    "eslint": "^9.36.0",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.44.1",
+    "vitest": "^3.2.4"
+  },
+  "allowScripts": {
+    "electron@38.8.6": true,
+    "esbuild@0.28.2": true,
+    "esbuild@0.25.12": true
+  }
+}

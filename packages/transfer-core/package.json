@@ -1,0 +1,30 @@
+{
+  "name": "@nexashare/transfer-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run --config ../../vitest.config.ts src"
+  },
+  "dependencies": {
+    "@nexashare/protocol": "0.1.0",
+    "@nexashare/shared": "0.1.0",
+    "@nexashare/validation": "0.1.0",
+    "selfsigned": "^2.4.1",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1"
+  }
+}

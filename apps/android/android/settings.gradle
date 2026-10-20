@@ -1,0 +1,18 @@
+pluginManagement {
+    def candidates = [
+        file("../node_modules/@react-native/gradle-plugin"),
+        file("../../../node_modules/@react-native/gradle-plugin")
+    ]
+    def pluginDir = candidates.find { it.exists() }
+    if (pluginDir != null) {
+        includeBuild(pluginDir)
+    }
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = "NexaShare"
+include(":app")

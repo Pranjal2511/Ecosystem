@@ -1,0 +1,26 @@
+{
+  "name": "@nexashare/android",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "react-native start",
+    "android": "react-native run-android",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nexashare/protocol": "0.1.0",
+    "@nexashare/shared": "0.1.0",
+    "@nexashare/validation": "0.1.0",
+    "react": "19.1.0",
+    "react-native": "0.81.4"
+  },
+  "devDependencies": {
+    "@react-native-community/cli": "19.1.1",
+    "@react-native-community/cli-platform-android": "19.1.1",
+    "@react-native/babel-preset": "0.81.4",
+    "@react-native/metro-config": "0.81.4",
+    "@types/react": "^19.1.13",
+    "typescript": "~5.8.3"
+  }
+}
