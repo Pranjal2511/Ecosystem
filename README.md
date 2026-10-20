@@ -73,3 +73,4 @@ docs/
 Each device generates its own TLS certificate. Discovery advertisements are untrusted. Pairing uses a short-lived 6-digit code, a one-time nonce, and an HMAC proof. After pairing, the client pins the server certificate fingerprint and authenticates with a session token. Incoming files require user approval. Relative paths are sanitized; writes stay inside the chosen download folder. Incomplete files live under `.nexashare-tmp` until size and hash checks succeed.
 
 Read `docs/PROTOCOL.md`, `docs/SECURITY.md`, and `docs/THREAT_MODEL.md` before shipping a release.
+"# Ecosystem" 
