@@ -13,7 +13,7 @@ Windows main (NexaEngine)
         | TLS 1.2+ / WSS / HTTPS PUT
 Android JS (React Native)
         | Native module
-AndroidEngine.kt (OkHttp client + planned inbound server)
+AndroidEngine.kt (OkHttp client + TlsProtocolServer inbound listener + bounded-memory receiveFile)
 ```
 
 The renderer never receives raw filesystem or socket handles. Preload exposes a narrow `window.nexa` API.
@@ -25,7 +25,7 @@ The renderer never receives raw filesystem or socket handles. Preload exposes a 
 - `@nexashare/validation` — Zod schemas and size-limited JSON parsers.
 - `@nexashare/transfer-core` — Node implementation used by Electron: identity, discovery, pairing, HTTPS streaming, persistence.
 
-Android does not run Node. It reimplements the wire protocol in Kotlin and must stay aligned with `docs/PROTOCOL.md`.
+Android lifecycle: STOPPED → STARTING → LISTENING (TLS server active) → STOPPING → STOPPED. The engine manages identity, pairing sessions, incoming approvals (`decide()`), bounded-memory file receiving (`receiveFile()`), and control-message routing (`onControl()`). Foreground service provides notification lifetime.
 
 ## Data flow for a send
 

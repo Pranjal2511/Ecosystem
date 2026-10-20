@@ -1,0 +1,120 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    env:
+      NODE_VERSION: 24
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Install JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          java-home: ${{ env.JAVA_HOME }}
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 35
+          build-tools: 35.0.0
+          ndk: 27.1.12297006
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Accept Android licenses
+        run: |
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || yes | $ANDROID_SDK_ROOT/cmdline-tools/bin/sdkmanager --licenses
+
+      - name: Verify Gradle wrapper
+        run: |
+          echo "Gradlew at apps/android/android/gradlew: $(test -f apps/android/android/gradlew && echo FOUND || echo MISSING)"
+          echo "Gradlew.bat at apps/android/android/gradlew.bat: $(test -f apps/android/android/gradlew.bat && echo FOUND || echo MISSING)"
+          echo "Actual directory contents:"
+          ls -la apps/android/android/
+
+      - name: Install npm dependencies (without Electron binary)
+        run: npm ci --ignore-scripts
+
+      - name: Build React Native JavaScript bundle
+        working-directory: apps/android
+        run: |
+          mkdir -p android/app/src/main/assets
+          npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
+
+      - name: Build debug APK
+        working-directory: apps/android/android
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.java-home || env.JAVA_HOME }}
+        run: |
+          echo "Using JAVA_HOME: $JAVA_HOME"
+          if [ -f "gradlew" ]; then
+            chmod +x gradlew
+            ./gradlew assembleDebug -x bundleDebugJsAndAssets -x :app:bundleDebugAab
+          elif [ -f "gradlew.bat" ]; then
+            chmod +x gradlew.bat
+            ./gradlew.bat assembleDebug -x bundleDebugJsAndAssets -x :app:bundleDebugAab
+          else
+            echo "Gradlew wrapper missing; attempting system gradle"
+            if command -v gradle &>/dev/null; then
+              gradle assembleDebug -x bundleDebugJsAndAssets -x :app:bundleDebugAab
+            else
+              echo "ERROR: Neither gradlew wrapper nor system gradle found."
+              echo "Install Gradle or commit the wrapper files (gradlew/gradlew.bat, gradle/wrapper/gradle-wrapper.properties)."
+              exit 1
+            fi
+          fi
+
+      - name: Verify APK exists
+        run: |
+          if [ -f "apps/android/android/app/build/outputs/apk/debug/app-debug.apk" ]; then
+            echo "APK FOUND: apps/android/android/app/build/outputs/apk/debug/app-debug.apk"
+            ls -lh apps/android/android/app/build/outputs/apk/debug/app-debug.apk
+          else
+            echo "ERROR: APK not found at expected path"
+            echo "Actual outputs:"
+            find apps/android/android/app/build/outputs -type f 2>/dev/null || echo "No build outputs"
+            exit 1
+          fi
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexashare-debug-apk
+          path: apps/android/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Print build result
+        run: |
+          echo "=== Android build result ==="
+          echo "APK path: apps/android/android/app/build/outputs/apk/debug/app-debug.apk"
+          echo "File size: $(ls -lh apps/android/android/app/build/outputs/apk/debug/app-debug.apk 2>/dev/null | awk '{print $5}')"
+          echo "Note: Release signing requires a secure keystore configured via GitHub Secrets (not hardcoded)."
+          echo "No signing passwords or private keys are stored in source code."

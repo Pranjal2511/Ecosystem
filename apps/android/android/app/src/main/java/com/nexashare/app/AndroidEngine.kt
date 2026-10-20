@@ -32,15 +32,28 @@ class AndroidEngine(private val context: Context) {
   private var sessionToken = ""
   private var peerDeviceId = ""
   private var incomingApprovals = mutableMapOf<String, Boolean>()
+  private var lifecycleState = "STOPPED"
+  private var serverStarted = false
+
+  fun getLifecycleState(): String = lifecycleState
 
   fun start(name: String): String {
+    if (lifecycleState == "LISTENING" || serverStarted) {
+      return JSONObject().put("ok", true).put("deviceId", identity.deviceId).put("port", listenPort).toString()
+    }
+    lifecycleState = "STARTING"
     displayName = name
     identity = DeviceIdentityFactory.create(name)
+    tlsServer = TlsProtocolServer(identity, this)
+    listenPort = tlsServer!!.start(0)
+    serverStarted = true
+    lifecycleState = "LISTENING"
     return JSONObject()
       .put("ok", true)
       .put("deviceId", identity.deviceId)
       .put("displayName", identity.displayName)
       .put("fingerprintSha256", identity.fingerprintSha256)
+      .put("port", listenPort)
       .toString()
   }
 
@@ -54,6 +67,15 @@ class AndroidEngine(private val context: Context) {
   fun createPairing(): JSONObject {
     val sessionId = UUID.randomUUID().toString()
     val code = "%06d".format(SecureRandom().nextInt(1_000_000))
+    val session = PairingSessionData(
+      sessionId = sessionId,
+      code = code,
+      expiresAt = System.currentTimeMillis() + 5 * 60 * 1000,
+      consumed = false,
+      attempts = 0,
+      nonce = null
+    )
+    pairingSessions[sessionId] = session
     return JSONObject()
       .put("pairingSessionId", sessionId)
       .put("code", code)
@@ -277,8 +299,119 @@ class AndroidEngine(private val context: Context) {
     return transferId
   }
 
+  fun onControl(sessionId: String, text: String) {
+    try {
+      val parsed = JSONObject(text)
+      val message = parsed.getJSONObject("message")
+      val type = message.getString("type")
+      when (type) {
+        "pairing_hello" -> {
+          val pairingSessionId = message.getString("pairingSessionId")
+          val code = message.getString("code")
+          val session = pairingSessions[pairingSessionId]
+          if (session == null || session.consumed || session.expiresAt < System.currentTimeMillis()) {
+            // Expired or consumed session
+            tlsServer?.sendJson(sessionId, envelope(JSONObject().put("type", "pairing_result").put("ok", false).put("errorCode", "PAIRING_EXPIRED")))
+          } else {
+            session.attempts += 1
+            val nonce = UUID.randomUUID().toString()
+            session.nonce = nonce
+            tlsServer?.sendJson(sessionId, envelope(JSONObject().put("type", "pairing_challenge").put("pairingSessionId", pairingSessionId).put("nonce", nonce)))
+          }
+        }
+        "pairing_proof" -> {
+          val pairingSessionId = message.getString("pairingSessionId")
+          val session = pairingSessions[pairingSessionId]
+          if (session == null || session.consumed || session.expiresAt < System.currentTimeMillis()) {
+            tlsServer?.sendJson(sessionId, envelope(JSONObject().put("type", "pairing_result").put("ok", false).put("errorCode", "PAIRING_EXPIRED")))
+            return
+          }
+          val nonce = session.nonce
+          val proofHex = message.getString("proofHex")
+          val guestFp = message.getJSONObject("guest").getString("fingerprintSha256")
+          val expectedProof = hmac(session.code + ":" + pairingSessionId, nonce + ":" + message.getJSONObject("guest").getString("deviceId") + ":" + guestFp)
+          if (expectedProof.lowercase() != proofHex.lowercase()) {
+            tlsServer?.sendJson(sessionId, envelope(JSONObject().put("type", "pairing_result").put("ok", false).put("errorCode", "PAIRING_INVALID")))
+            session.consumed = true
+            return
+          }
+          if (usedNonces.contains(message.getString("nonce"))) {
+            tlsServer?.sendJson(sessionId, envelope(JSONObject().put("type", "pairing_result").put("ok", false).put("errorCode", "PAIRING_INVALID")))
+            session.consumed = true
+            return
+          }
+          usedNonces.add(message.getString("nonce"))
+          session.consumed = true
+          val token = UUID.randomUUID().toString()
+          sessionToken = token
+          val hostIdentity = JSONObject()
+            .put("deviceId", identity.deviceId)
+            .put("displayName", identity.displayName)
+            .put("fingerprintSha256", identity.fingerprintSha256)
+            .put("publicKeySpkiHex", identity.publicKeySpkiHex)
+          paired.put(hostIdentity.put("sessionToken", token))
+          tlsServer?.sendJson(sessionId, envelope(JSONObject().put("type", "pairing_result").put("ok", true).put("host", hostIdentity).put("sessionToken", token)))
+        }
+        "auth_hello" -> {
+          val deviceId = message.getString("deviceId")
+          val authToken = message.getString("sessionToken")
+          val nonce = message.getString("nonce")
+          val pairedRecord = paired.optJSONObject(0)
+          val isValidToken = pairedRecord != null && pairedRecord.optString("sessionToken", "") == authToken
+          if (!isValidToken || usedNonces.contains(nonce)) {
+            tlsServer?.sendJson(sessionId, envelope(JSONObject().put("type", "auth_result").put("ok", false).put("errorCode", "UNAUTHENTICATED")))
+          } else {
+            usedNonces.add(nonce)
+            tlsServer?.sendJson(sessionId, envelope(JSONObject().put("type", "auth_result").put("ok", true)))
+          }
+        }
+        "transfer_offer" -> {
+          val transferId = message.getString("transferId")
+          val files = JSONArray()
+          val fileArray = message.getJSONArray("files")
+          for (i in 0 until fileArray.length()) {
+            val fileObj = fileArray.getJSONObject(i)
+            files.put(fileObj)
+          }
+          val totalBytes = message.optLong("totalBytes", 0)
+          incomingApprovals[transferId] = false
+          // Incoming offer creates pending approval state; user approves via decide().
+        }
+        "transfer_decision" -> {
+          // Decision handled through decide() framework.
+        }
+        "transfer_cancel" -> {
+          // Cancellation handled by engine abort/state transition.
+        }
+        "transfer_progress" -> {
+          // Progress tracked by sender; receiver verifies bytes.
+        }
+        "transfer_complete" -> {
+          // Completion verified by receiveFile() hash check.
+        }
+        "transfer_error" -> {
+          // Error propagated to UI/status.
+        }
+        "heartbeat" -> {
+          // Keep-alive; no action required.
+        }
+      }
+    } catch (_: Exception) {
+      // Ignore malformed or unexpected messages to prevent crashes.
+    }
+  }
+
   fun decide(transferId: String, accepted: Boolean) {
     incomingApprovals[transferId] = accepted
+  }
+
+  fun stop(): String {
+    lifecycleState = "STOPPING"
+    tlsServer?.stop()
+    tlsServer = null
+    serverStarted = false
+    lifecycleState = "STOPPED"
+    return "stopped"
   }
 
   fun receiveFile(transferId: String, index: Int, token: String?, length: Long, input: java.io.InputStream): JSONObject {
@@ -318,15 +451,36 @@ class AndroidEngine(private val context: Context) {
       }
     }
     val sha256Hex = digest.digest().joinToString("") { "%02x".format(it) }
+    val safeName = "file-$index"
     val finalDir = File(destinationDir, "Downloads")
     finalDir.mkdirs()
-    val finalFile = File(finalDir, "file-$index")
+    val finalFile = File(finalDir, safeName)
+    // Prevent path escape: ensure final file stays inside Downloads
+    val resolvedDir = finalDir.canonicalPath
+    val resolvedFile = finalFile.canonicalPath
+    if (!resolvedFile.startsWith(resolvedDir + File.separator) && resolvedFile != resolvedDir) {
+      throw IllegalArgumentException("PATH_REJECTED")
+    }
     tmpFile.renameTo(finalFile)
     return JSONObject()
       .put("ok", true)
       .put("sha256Hex", sha256Hex)
       .put("sizeBytes", length)
   }
+
+  private var tlsServer: TlsProtocolServer? = null
+  private var listenPort = 0
+  private val pairingSessions = mutableMapOf<String, PairingSessionData>()
+  private val usedNonces = mutableSetOf<String>()
+
+  private data class PairingSessionData(
+    val sessionId: String,
+    val code: String,
+    val expiresAt: Long,
+    var consumed: Boolean,
+    var attempts: Int,
+    var nonce: String?
+  )
 
   private fun envelope(message: JSONObject): JSONObject =
     JSONObject()

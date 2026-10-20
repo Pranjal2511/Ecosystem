@@ -14,7 +14,8 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
     build: {
       lib: {
-        entry: "src/preload/index.ts"
+        entry: "src/preload/index.ts",
+        fileName: "preload/index"
       }
     }
   },

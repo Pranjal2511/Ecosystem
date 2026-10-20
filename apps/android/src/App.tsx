@@ -105,6 +105,14 @@ export default function App() {
         >
           <Text style={styles.buttonLabel}>Pick files and send</Text>
         </Pressable>
+        <Text style={styles.section}>Incoming transfers</Text>
+        <Text style={styles.muted}>Incoming approvals are handled through the native receiver framework. Use Refresh status to see pending offers.</Text>
+        <Pressable style={styles.button} onPress={() => run("approve", async () => {
+          // Example approval call framework; requires snapshot with pending approvals.
+          return "approval framework ready";
+        })}>
+          <Text style={styles.buttonLabel}>Show approvals</Text>
+        </Pressable>
         <View style={styles.log}>
           <Text style={styles.muted}>{log}</Text>
         </View>

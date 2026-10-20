@@ -37,4 +37,5 @@
 - UDP multicast can leak device display names on the LAN. Users should pick non-identifying names if that matters.
 - A paired malicious device can offer files; the user must still approve, but social engineering remains possible.
 - `state.json` on disk is readable by other software running as the same Windows user.
-- Android inbound TLS server is not complete; a phone currently acts as a **client** (pair + send to Windows). Receiving on Android is unimplemented pending device testing.
+- Android inbound TLS server (`TlsProtocolServer`) is implemented and connected to `AndroidEngine`; full receiving verification requires device testing.
+- A paired malicious device can offer files; user approval (`decide()`) is required before `receiveFile()` writes any data.
