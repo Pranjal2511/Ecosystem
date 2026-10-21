@@ -57,12 +57,24 @@ class AndroidEngine(private val context: Context) {
       .toString()
   }
 
-  fun snapshot(): JSONObject =
-    JSONObject()
+  fun snapshot(): JSONObject {
+    if (!::identity.isInitialized) {
+      return JSONObject()
+        .put("deviceId", deviceId)
+        .put("displayName", displayName)
+        .put("fingerprintSha256", "")
+        .put("paired", paired)
+        .put("lifecycleState", lifecycleState)
+        .put("listenPort", 0)
+    }
+    return JSONObject()
       .put("deviceId", identity.deviceId)
       .put("displayName", identity.displayName)
       .put("fingerprintSha256", identity.fingerprintSha256)
       .put("paired", paired)
+      .put("lifecycleState", lifecycleState)
+      .put("listenPort", listenPort)
+  }
 
   fun createPairing(): JSONObject {
     val sessionId = UUID.randomUUID().toString()

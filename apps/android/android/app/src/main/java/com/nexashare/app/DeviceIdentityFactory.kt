@@ -49,7 +49,7 @@ object DeviceIdentityFactory {
     val signer = JcaContentSignerBuilder("SHA256WithRSA").build(keyPair.private)
     val cert = JcaX509CertificateConverter().setProvider("BC").getCertificate(builder.build(signer))
     val fingerprint = sha256Hex(cert.encoded)
-    val spki = sha256Hex(keyPair.public.encoded).let { keyPair.public.encoded.joinToString("") { b -> "%02x".format(b) } }
+    val spki = keyPair.public.encoded.joinToString("") { b -> "%02x".format(b) }
     val store = KeyStore.getInstance("PKCS12").apply { load(null, null) }
     val password = "nexashare".toCharArray()
     store.setKeyEntry("nexa", keyPair.private, password, arrayOf(cert))

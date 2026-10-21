@@ -37,6 +37,8 @@ jobs:
         with:
           api-level: 35
           build-tools: 35.0.0
+          cmdline-tools: latest
+          platform-tools: latest
           ndk: 27.1.12297006
 
       - name: Cache Gradle
@@ -50,7 +52,16 @@ jobs:
 
       - name: Accept Android licenses
         run: |
-          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || yes | $ANDROID_SDK_ROOT/cmdline-tools/bin/sdkmanager --licenses
+          # Modern SDK uses cmdline-tools; avoid deprecated 'tools' package reference
+          SDK_CMDLINE="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          SDK_CMDLINE_OLD="$ANDROID_SDK_ROOT/cmdline-tools/bin/sdkmanager"
+          if [ -f "$SDK_CMDLINE" ]; then
+            yes | "$SDK_CMDLINE" --licenses || true
+          elif [ -f "$SDK_CMDLINE_OLD" ]; then
+            yes | "$SDK_CMDLINE_OLD" --licenses || true
+          else
+            echo "Warning: sdkmanager not found at expected path; licenses may already be accepted."
+          fi
 
       - name: Verify Gradle wrapper
         run: |
@@ -114,7 +125,17 @@ jobs:
       - name: Print build result
         run: |
           echo "=== Android build result ==="
-          echo "APK path: apps/android/android/app/build/outputs/apk/debug/app-debug.apk"
-          echo "File size: $(ls -lh apps/android/android/app/build/outputs/apk/debug/app-debug.apk 2>/dev/null | awk '{print $5}')"
+          APK_PATH="apps/android/android/app/build/outputs/apk/debug/app-debug.apk"
+          echo "APK path: $APK_PATH"
+          if [ -f "$APK_PATH" ]; then
+            ls -lh "$APK_PATH"
+            echo "Build SUCCESS: APK generated."
+          else
+            echo "Build FAILURE: APK not found at $APK_PATH"
+            echo "Actual outputs:"
+            find apps/android/android/app/build/outputs -type f 2>/dev/null || echo "No build outputs"
+            exit 1
+          fi
+          echo "Note: The deprecated 'tools' SDK package is no longer installed; modern cmdline-tools and platform-tools are used instead."
           echo "Note: Release signing requires a secure keystore configured via GitHub Secrets (not hardcoded)."
           echo "No signing passwords or private keys are stored in source code."

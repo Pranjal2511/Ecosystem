@@ -1,3 +1,4 @@
+
 plugins {
     id "com.android.application"
     id "org.jetbrains.kotlin.android"
@@ -6,7 +7,7 @@ plugins {
 
 android {
     namespace "com.nexashare.app"
-    compileSdk rootProject.ext.compileSdkVersion
+    compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "com.nexashare.app"
         minSdk rootProject.ext.minSdkVersion
@@ -38,15 +39,28 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+    packaging {
+        resources {
+            excludes.addAll(["META-INF/LICENSE.md", "META-INF/NOTICE.md", "META-INF/LICENSE", "META-INF/NOTICE"])
+        }
+    }
 }
 
 dependencies {
     implementation "com.facebook.react:react-android"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0"
     implementation "com.squareup.okhttp3:okhttp:4.12.0"
-    implementation "org.json:json:20250107"
+    implementation "org.json:json:20260814"
+    implementation "org.bouncycastle:bcpkix-jdk18on:1.86"
+    implementation "org.bouncycastle:bcprov-jdk18on:1.86"
 }
 
+
 react {
+    root = file("../../..")
+    reactNativeDir = file("../../../node_modules/react-native")
+    codegenDir = file("../../../node_modules/@react-native/codegen")
+    cliFile = file("../../../node_modules/react-native/cli.js")
+
     autolinkLibrariesWithApp()
 }

@@ -1,17 +1,22 @@
 pluginManagement {
-    def candidates = [
-        file("../node_modules/@react-native/gradle-plugin"),
-        file("../../../node_modules/@react-native/gradle-plugin")
-    ]
-    def pluginDir = candidates.find { it.exists() }
-    if (pluginDir != null) {
-        includeBuild(pluginDir)
-    }
     repositories {
         google()
         mavenCentral()
         gradlePluginPortal()
     }
+}
+
+def candidates = [
+    file("../node_modules/@react-native/gradle-plugin"),
+    file("../../../node_modules/@react-native/gradle-plugin")
+]
+def pluginDir = candidates.find { it.exists() }
+if (pluginDir != null) {
+    includeBuild(pluginDir)
+}
+
+extensions.configure(com.facebook.react.ReactSettingsExtension) {
+    ex.autolinkLibrariesFromApp()
 }
 
 rootProject.name = "NexaShare"

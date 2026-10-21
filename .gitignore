@@ -74,3 +74,9 @@ apps/android/.metro-health-check*
 
 # Local NexaShare data
 .nexashare/
+
+# Generated JVM memory dumps
+*.hprof
+
+# Local Android archive
+/apps/android.zip
