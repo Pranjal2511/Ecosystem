@@ -52,7 +52,8 @@ android {
                 "META-INF/LICENSE.md",
                 "META-INF/NOTICE.md",
                 "META-INF/LICENSE",
-                "META-INF/NOTICE"
+                "META-INF/NOTICE",
+                "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
             ])
         }
     }
@@ -68,10 +69,10 @@ dependencies {
 }
 
 react {
-    // React Native app root: D:/nexashare/apps/android
+    // React Native application root
     root = file("../..")
 
-    // Dependencies are installed at D:/nexashare/node_modules
+    // Dependencies are installed in the repository root node_modules
     reactNativeDir = file("../../../../node_modules/react-native")
     codegenDir = file("../../../../node_modules/@react-native/codegen")
     cliFile = file("../../../../node_modules/react-native/cli.js")
