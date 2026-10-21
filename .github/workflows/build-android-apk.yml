@@ -107,8 +107,7 @@ jobs:
           ./gradlew \
             --no-daemon \
             --stacktrace \
-            assembleDebug \
-            -x bundleDebugJsAndAssets
+            assembleDebug
 
       - name: Verify APK
         shell: bash
