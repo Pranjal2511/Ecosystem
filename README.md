@@ -32,3 +32,4 @@ npm test             # run vitest (7 files, 24 tests)
 The desktop (`@nexashare/desktop`) and mobile (`@nexashare/android`) app
 source directories are empty placeholders. Only the shared library packages
 are implemented.
+"# Ecosystem" 
