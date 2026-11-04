@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Mobile build
+packages/mobile/android/app/build/
+packages/mobile/android/.gradle/
+packages/mobile/ios/build/
+
+# Desktop build
+packages/desktop/dist/
+packages/desktop/release/
+
+# Electron
+packages/desktop/node_modules/
+
+# Cache
+.eslintcache
+.cache/
+.parcel-cache/

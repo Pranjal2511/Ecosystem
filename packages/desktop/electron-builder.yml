@@ -1,0 +1,38 @@
+appId: "com.nexashare.desktop"
+productName: "NexaShare"
+
+files:
+  - dist/**
+  - package.json
+
+directories:
+  output: dist/releases
+
+asar:
+  unpackDir: "**/*.node"
+
+mac:
+  category: public.app-category.utilities
+  target: ["default", "zip"]
+  hardened: true
+
+win:
+  target:
+    - target: "nsis"
+      arch:
+        - x64
+    - target: "portable"
+      arch:
+        - x64
+
+linux:
+  target: ["AppImage", "deb", "snap"]
+  category: "Utility"
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+
+publish:
+  provider: "generic"
+  url: "https://example.com/releases"

@@ -1,0 +1,15 @@
+{
+  "name": "@nexashare/api-client",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Unified API client for NexaShare desktop and mobile apps",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0"
+  }
+}

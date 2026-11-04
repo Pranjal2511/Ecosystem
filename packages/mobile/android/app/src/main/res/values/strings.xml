@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NexaShare</string>
+    <string name="fingerprint_unlock">Unlock Laptop</string>
+    <string name="pairing_code">Pairing Code</string>
+    <string name="send_files">Send Files</string>
+    <string name="discover_devices">Discover Devices</string>
+</resources>

@@ -1,0 +1,26 @@
+{
+  "name": "@nexashare/mobile",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NexaShare Android Mobile App",
+  "scripts": {
+    "android": "react-native run-android",
+    "start": "react-native start",
+    "build:android": "cd android && ./gradlew assembleRelease",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "react": "18.2.0",
+    "react-native": "0.74.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@babel/preset-env": "^7.24.0",
+    "@babel/preset-typescript": "^7.24.0",
+    "@types/react": "^18.3.1",
+    "metro-react-native-babel-preset": "^0.74.0",
+    "react-native-document-picker": "^9.3.1",
+    "typescript": "^5.8.0"
+  }
+}
